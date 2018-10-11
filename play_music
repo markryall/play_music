@@ -23,10 +23,10 @@ OptionParser.new do |opts|
   end
 end.parse!
 
-tracks = Dir["#{options[:path]}/**/*.mp3"].to_a
+tracks = Dir.glob("#{options[:path]}/**/*.{mp3,m4a}")
 
 if tracks.count == 0
-  puts 'No mp3 files were found at this location'
+  puts 'No audio files were found at this location'
   exit
 end
 
