@@ -6,11 +6,15 @@ This plays streaming music from soma.fm and (optionally) scrobbles track informa
 
     somafm -h
 
+This depends on `mplayer` (`brew install mplayer`) to play the somafm channel.
+
 ## play_music
 
 This just plays audio files that you have in a local directory and (optionally) scrobbles track information to last.fm. 
 
     play_music -h
+
+This depends on ffmpeg (`brew install ffmpeg`) to extract id3 tags.
 
 ## scrobbling
 
