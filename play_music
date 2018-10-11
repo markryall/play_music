@@ -1,0 +1,51 @@
+#!/usr/bin/env ruby
+
+$: << File.dirname(__FILE__)
+
+require 'optparse'
+require 'ffmpeg_file'
+require 'simple_scrobbler'
+
+options = {scrobble: true, random: true, path: '.'}
+OptionParser.new do |opts|
+  opts.banner = "Usage: play_music [options]"
+
+  opts.on("-p", "--path [PATH]", "Directory to find mp3 files (default is current location)") do |path|
+    options[:path] = path
+  end
+
+  opts.on("-r", "--[no-]random", "Randomise files (default is true)") do |v|
+    options[:random] = v
+  end
+
+  opts.on("-s", "--[no-]scrobble", "Scrobble to last.fm (default is true)") do |v|
+    options[:scrobble] = v
+  end
+end.parse!
+
+tracks = Dir["#{options[:path]}/**/*.mp3"].to_a
+
+if tracks.count == 0
+  puts 'No mp3 files were found at this location'
+  exit
+end
+
+tracks = tracks.shuffle if options[:random]
+scrobbler = options[:scrobble] ? SimpleScrobbler.load : nil
+
+tracks.each do |track|
+  tags = FfmpegFile.new track
+  title, artist = tags.title, tags.artist
+  description = "#{title} by #{artist}"
+  puts "Now playing: #{description}"
+  `terminal-notifier -group hearken -message "#{description}" -title "Now Playing"`
+  scrobbler.now_playing artist, title if scrobbler
+  begin
+    start_time = Time.now.to_i
+    `afplay "#{track}"`
+    scrobbler.scrobble artist, title, timestamp: start_time if scrobbler
+  rescue Interrupt
+    puts 'exiting'
+    exit 0
+  end
+end

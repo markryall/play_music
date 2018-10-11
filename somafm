@@ -1,0 +1,91 @@
+#!/usr/bin/env ruby
+
+$LOAD_PATH << File.dirname(__FILE__)
+
+require 'optparse'
+require 'simple_scrobbler'
+require 'notifier'
+require 'preferences'
+
+options = {scrobble: true, file: nil}
+OptionParser.new do |opts|
+  opts.banner = "Usage: somafm [options]"
+
+  opts.on("-c", "--channel [CHANNEL]", "somafm channel") do |channel|
+    options[:channel] = channel
+  end
+
+  opts.on("-d", "--dump [FILE]", "Capture stream to file") do |file|
+    options[:file] = file
+  end
+
+  opts.on("-s", "--[no-]scrobble", "Scrobble to last.fm (default is true)") do |v|
+    options[:scrobble] = v
+  end
+end.parse!
+
+soma = Preferences.new File.dirname(__FILE__) + '/soma.yaml'
+stations = soma['stations']
+$ignore_list = soma['ignore_list']
+
+unless options[:channel]
+  puts "The current somafm channels are:"
+  stations.each { |station| puts "  #{station}" }
+  exit
+end
+
+$notifier = Notifier.new
+$current = nil
+channel = stations.grep(/#{options[:channel]}/).first
+
+puts "playing channel #{channel}"
+
+$scrobbler = options[:scrobble] && ! options[:file] ? SimpleScrobbler.load : nil
+
+def scrobble track
+  return unless $scrobbler
+  begin
+    $scrobbler.scrobble track[0], track[1], timestamp: track[2] if track
+  rescue EOFError
+    puts 'failed to scrobble track'
+  end
+end
+
+def now_playing artist, track
+  return unless $scrobbler
+  begin
+    $scrobbler.now_playing artist, track, duration: 300
+  rescue EOFError
+    puts 'failed to tell last.fm what\'s playing'
+  end
+end
+
+def process_line line
+  line = line.encode('UTF-8', 'binary', invalid: :replace, undef: :replace, replace: '')
+  # p line if line.start_with? 'ICY Info:'
+  return unless line =~ /ICY Info: StreamTitle='(.*) - (.*)';StreamUrl='(.*)';/
+  artist, track = $1, $2
+  message = "#{track} by #{artist}"
+  $notifier.say message
+  scrobble $current
+  if $ignore_list.include? artist
+    puts "(#{message}) - skipped scrobbling"
+    $current = nil
+  else
+    now_playing artist, track
+    $current = [artist,track, Time.now.to_i]
+    puts "#{Time.now}: #{message}"
+  end
+end
+
+begin
+  command = "mplayer -quiet -vo none -ao coreaudio"
+  command += " -dumpaudio -dumpfile #{options[:file]}" if options[:file]
+  command += " -playlist http://somafm.com/startstream=#{channel}.pls"
+  IO.popen "#{command} 2>&1" do |io|
+    while line = io.gets
+      process_line line
+    end
+  end
+rescue Interrupt
+end
