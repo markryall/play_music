@@ -4,7 +4,6 @@ $LOAD_PATH << File.dirname(__FILE__)
 
 require 'optparse'
 require 'simple_scrobbler'
-require 'notifier'
 require 'preferences'
 
 options = {scrobble: true, file: nil}
@@ -34,7 +33,6 @@ unless options[:channel]
   exit
 end
 
-$notifier = Notifier.new
 $current = nil
 channel = stations.grep(/#{options[:channel]}/).first
 
@@ -66,7 +64,7 @@ def process_line line
   return unless line =~ /ICY Info: StreamTitle='(.*) - (.*)';StreamUrl='(.*)';/
   artist, track = $1, $2
   message = "#{track} by #{artist}"
-  $notifier.say message
+  `terminal-notifier -group hearken -message "#{message}" -title "Now Playing"`
   scrobble $current
   if $ignore_list.include? artist
     puts "(#{message}) - skipped scrobbling"
