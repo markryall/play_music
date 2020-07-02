@@ -1,0 +1,71 @@
+#!/usr/bin/env ruby
+
+require 'optparse'
+require_relative 'preferences'
+require_relative 'simple_scrobbler'
+
+artist = nil
+release = nil
+side = nil
+
+OptionParser.new do |opts|
+  opts.banner = "Usage: play_vinyl [options]"
+
+  opts.on("-a", "--artist [ALBUM]", "Album name") do |v|
+    artist = v
+  end
+
+  opts.on("-r", "--release [RELEASE]", "Release") do |v|
+    release = v
+  end
+
+  opts.on("-s", "--side [SIDE]", "Side") do |v|
+    side = v
+  end
+end.parse!
+
+unless artist && release && side
+  puts "please specify artist, release and side"
+  exit 1
+end
+
+vinyl = Preferences.new '~/.vinyl.yml'
+vinyl[artist] = {} unless vinyl[artist]
+vinyl[artist][release] = {} unless vinyl[artist][release]
+vinyl[artist][release][side] = [] unless vinyl[artist][release][side]
+
+if vinyl[artist][release][side].empty?
+  tracks = []
+  track_number = 1
+  loop do
+    puts "> enter the name of track #{track_number} (blank if no more tracks)"
+    track_name = gets.chomp
+    break if track_name.length == 0
+    puts "> enter duration of #{track_name} (minutes:seconds)"
+    minutes, seconds = *gets.chomp.split(":").map { |number| number.to_i }
+    duration = minutes * 60 + seconds
+    track_number += 1
+    tracks << {
+      name: track_name,
+      duration: duration
+    }
+  end
+  vinyl[artist][release][side] = tracks
+  vinyl.persist
+end
+
+tracks = vinyl[artist][release][side]
+scrobbler = SimpleScrobbler.load
+
+tracks.each do |track|
+  start_time = Time.now.to_i
+
+  track_name = track[:name]
+  duration = track[:duration]
+
+  scrobbler.now_playing artist, track_name
+
+  sleep duration
+
+  scrobbler.scrobble artist, track_name, timestamp: start_time
+end

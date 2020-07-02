@@ -19,7 +19,7 @@ class SimpleScrobbler
   end
 
   def self.load
-    conf = Preferences.new File.dirname(__FILE__) + '/lastfm.yaml'
+    conf = Preferences.new '~/lastfm.yaml'
 
     unless conf['api_key'] && conf['secret']
       puts 'You will need an api key and secret for last fm integration'
@@ -74,11 +74,13 @@ class SimpleScrobbler
 
   # http://www.last.fm/api/show?service=443
   def scrobble artist, title, params={}
+    puts "played '#{title}' by '#{artist}'"
     lfm_track 'track.scrobble', artist, title, params
   end
 
   # See http://www.last.fm/api/show?service=454 for more details
   def now_playing artist, title, params={}
+    puts "now playing '#{title}' by '#{artist}'"
     lfm_track 'track.updateNowPlaying', artist, title, params
   end
 
