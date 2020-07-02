@@ -88,11 +88,11 @@ tracks.each_with_index do |track, index|
   while true
     scrobbler.now_playing artist, track_name, album: release, duration: duration
 
-    sleep 1
+    sleep 0.9
 
     elapsed = Time.now.to_i - start_time
     remaining = duration - elapsed
-    remaining = 0 if remainined < 0
+    remaining = 0 if remaining < 0
 
     print description(base, remaining)
     print reset
