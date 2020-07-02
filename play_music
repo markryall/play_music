@@ -1,12 +1,11 @@
 #!/usr/bin/env ruby
 
-$: << File.dirname(__FILE__)
-
 require 'optparse'
-require 'ffmpeg_file'
-require 'simple_scrobbler'
+require_relative 'ffmpeg_file'
+require_relative 'simple_scrobbler'
 
-options = {scrobble: true, random: true, path: '.'}
+options = { scrobble: true, random: true, path: '.' }
+
 OptionParser.new do |opts|
   opts.banner = "Usage: play_music [options]"
 

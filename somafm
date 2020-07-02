@@ -1,14 +1,12 @@
 #!/usr/bin/env ruby
 
-$LOAD_PATH << File.dirname(__FILE__)
-
 require 'optparse'
-require 'simple_scrobbler'
-require 'preferences'
+require_relative 'simple_scrobbler'
+require_relative 'preferences'
 
-options = {scrobble: true, file: nil}
+options = { scrobble: true, file: nil }
 OptionParser.new do |opts|
-  opts.banner = "Usage: somafm [options]"
+  opts.banner = 'Usage: somafm [options]'
 
   opts.on("-c", "--channel [CHANNEL]", "somafm channel") do |channel|
     options[:channel] = channel

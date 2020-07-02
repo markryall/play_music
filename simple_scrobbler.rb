@@ -5,7 +5,7 @@ require 'digest/md5'
 require 'uri'
 require 'cgi'
 require 'rexml/document'
-require 'preferences'
+require_relative 'preferences'
 
 class SimpleScrobbler
   SCROBBLER_URL = 'http://ws.audioscrobbler.com/2.0/'
