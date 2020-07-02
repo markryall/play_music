@@ -74,13 +74,11 @@ class SimpleScrobbler
 
   # http://www.last.fm/api/show?service=443
   def scrobble artist, title, params={}
-    puts "played '#{title}' by '#{artist}'"
     lfm_track 'track.scrobble', artist, title, params
   end
 
   # See http://www.last.fm/api/show?service=454 for more details
   def now_playing artist, title, params={}
-    puts "now playing '#{title}' by '#{artist}'"
     lfm_track 'track.updateNowPlaying', artist, title, params
   end
 
@@ -88,7 +86,9 @@ class SimpleScrobbler
   def love artist, title, params={}
     lfm_track 'track.love', artist, title, params
   end
+
 private
+
   def lfm_track method, artist, title, params
     doc = lfm :post, method, params.merge(sk: session_key, artist: artist, track: title)
     status = doc.root.attributes['status']

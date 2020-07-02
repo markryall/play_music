@@ -38,10 +38,10 @@ if vinyl[artist][release][side].empty?
   tracks = []
   track_number = 1
   loop do
-    puts "> enter the name of track #{track_number} (blank if no more tracks)"
+    print "Enter the name of track #{track_number} (blank if no more tracks) "
     track_name = gets.chomp
     break if track_name.length == 0
-    puts "> enter duration of #{track_name} (minutes:seconds)"
+    print "Enter duration of #{track_name} (minutes:seconds) "
     minutes, seconds = *gets.chomp.split(":").map { |number| number.to_i }
     duration = minutes * 60 + seconds
     track_number += 1
@@ -57,15 +57,50 @@ end
 tracks = vinyl[artist][release][side]
 scrobbler = SimpleScrobbler.load
 
-tracks.each do |track|
+LENGTH = 50
+
+def description(base, remaining)
+  mins, secs = remaining / 60, remaining % 60
+  "#{base} #{mins.to_s.rjust(3, '0')}:#{secs.to_s.rjust(2, '0')}"
+end
+
+tracks.each_with_index do |track, index|
   start_time = Time.now.to_i
 
+  track_number = index + 1
   track_name = track[:name]
   duration = track[:duration]
 
-  scrobbler.now_playing artist, track_name
+  artist_length = 30
+  track_length = 40
 
-  sleep duration
+  base = [
+    track_number.to_s.rjust(2, '0'),
+    artist.slice(0...artist_length).ljust(artist_length),
+    track_name.slice(0...track_length).ljust(track_length),
+  ].join(' ')
 
-  scrobbler.scrobble artist, track_name, timestamp: start_time
+  reset = "\b" * (base.length + 7)
+
+  print description(base, duration)
+  print reset
+
+  while true
+    scrobbler.now_playing artist, track_name, album: release, duration: duration
+
+    sleep 1
+
+    elapsed = Time.now.to_i - start_time
+    remaining = duration - elapsed
+    remaining = 0 if remainined < 0
+
+    print description(base, remaining)
+    print reset
+
+    break if remaining == 0
+  end
+
+  scrobbler.scrobble artist, track_name, album: release, duration: duration, timestamp: start_time
+
+  puts
 end
