@@ -17,24 +17,31 @@ stations:
 - fluid
 - folkfwd
 - groovesalad
+- gsclassic
 - illstreet
 - indiepop
 - live
 - lush
 - metal
 - missioncontrol
+- n5md
 - poptron
+- reggae
+- scanner
 - secretagent
 - seventies
 - sf1033
 - sfinsf
 - sonicuniverse
 - spacestation
+- specials
 - suburbsofgoa
 - sxfm
+- synphaera
 - thetrip
 - thistle
 - u80s
+- vaporwaves
 - xmasrocks
 ignore_list:
 - Secret Agent Dropin
