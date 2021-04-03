@@ -58,7 +58,6 @@ end
 
 def process_line line
   line = line.encode('UTF-8', 'binary', invalid: :replace, undef: :replace, replace: '')
-  # p line if line.start_with? 'ICY Info:'
   return unless line =~ /ICY Info: StreamTitle='(.*) - (.*)';StreamUrl='(.*)';/
   artist, track = $1, $2
   message = "#{track} by #{artist}"
@@ -75,7 +74,7 @@ def process_line line
 end
 
 begin
-  command = "mplayer -quiet -vo none -ao coreaudio"
+  command = "mplayer -quiet -vo none"
   command += " -dumpaudio -dumpfile #{options[:file]}" if options[:file]
   command += " -playlist http://somafm.com/startstream=#{channel}.pls"
   IO.popen "#{command} 2>&1" do |io|
